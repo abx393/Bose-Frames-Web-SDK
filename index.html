@@ -313,6 +313,7 @@
             function calculateAbsoluteTimestamp(relativeTimestamp, lastTimestampRef, wrapCountRef, firstTimestampRef) {
                 // Set first timestamp on first reading
                 if (firstTimestampRef === null) {
+                    console.log('firstTimestampRef set to: ' + relativeTimestamp);
                     firstTimestampRef = relativeTimestamp;
                 }
 
