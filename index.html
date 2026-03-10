@@ -252,11 +252,26 @@
             const boseARDeviceElement = document.querySelector("bose-ar-device");
 
             let isRecording = false;
-            let recordingStartTime = '';
+            let recordingStartTime = 0; // Unix timestamp in milliseconds
+            let recordingStartTimeString = ''; // For filename
             let accelerometerCsv = '';
             let gyroscopeCsv = '';
             let rotationCsv = '';
             let gameRotationCsv = '';
+
+            // Wrap tracking variables
+            let accelerometerLastTimestamp = 0;
+            let accelerometerWrapCount = 0;
+            let accelerometerFirstTimestamp = null;
+            let gyroscopeLastTimestamp = 0;
+            let gyroscopeWrapCount = 0;
+            let gyroscopeFirstTimestamp = null;
+            let rotationLastTimestamp = 0;
+            let rotationWrapCount = 0;
+            let rotationFirstTimestamp = null;
+            let gameRotationLastTimestamp = 0;
+            let gameRotationWrapCount = 0;
+            let gameRotationFirstTimestamp = null;
 
             boseARDeviceElement.addEventListener("connect", event => {
                 dataContainer.style.display = '';
@@ -266,11 +281,26 @@
             document.getElementById('startRecording').addEventListener('click', () => {
                 if (!isRecording) {
                     isRecording = true;
-                    recordingStartTime = new Date().toISOString().replace(/[:.]/g, '-');
+                    recordingStartTime = Date.now(); // Unix timestamp in milliseconds
+                    recordingStartTimeString = new Date(recordingStartTime).toISOString().replace(/[:.]/g, '-');
                     accelerometerCsv = 'timestamp,x,y,z\n';
                     gyroscopeCsv = 'timestamp,x,y,z\n';
                     rotationCsv = 'timestamp,x,y,z,w,pitch,roll,yaw\n';
                     gameRotationCsv = 'timestamp,x,y,z,w,pitch,roll,yaw\n';
+
+                    // Initialize wrap tracking
+                    accelerometerLastTimestamp = 0;
+                    accelerometerWrapCount = 0;
+                    accelerometerFirstTimestamp = null;
+                    gyroscopeLastTimestamp = 0;
+                    gyroscopeWrapCount = 0;
+                    gyroscopeFirstTimestamp = null;
+                    rotationLastTimestamp = 0;
+                    rotationWrapCount = 0;
+                    rotationFirstTimestamp = null;
+                    gameRotationLastTimestamp = 0;
+                    gameRotationWrapCount = 0;
+                    gameRotationFirstTimestamp = null;
                 }
             });
 
@@ -280,13 +310,32 @@
                 }
             });
 
+            function calculateAbsoluteTimestamp(relativeTimestamp, lastTimestampRef, wrapCountRef, firstTimestampRef) {
+                // Set first timestamp on first reading
+                if (firstTimestampRef === null) {
+                    firstTimestampRef = relativeTimestamp;
+                }
+
+                // Detect wrap (timestamp decreased, indicating overflow from 65535 to 0)
+                if (relativeTimestamp < lastTimestampRef) {
+                    wrapCountRef++;
+                }
+                lastTimestampRef = relativeTimestamp;
+
+                // Calculate absolute timestamp in milliseconds since Unix epoch
+                // Formula: startTime + (relativeTime - firstRelativeTime) + (wraps * 65536)
+                const offsetTime = relativeTimestamp - firstTimestampRef + (wrapCountRef * 65536);
+                const absoluteMs = recordingStartTime + offsetTime;
+                return absoluteMs;
+            }
+
             function downloadCsv(csvData, sensorType) {
                 if (csvData) {
                     const blob = new Blob([csvData], { type: 'text/csv' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `${recordingStartTime}_${sensorType}.csv`;
+                    a.download = `${recordingStartTimeString}_${sensorType}.csv`;
                     a.click();
                     URL.revokeObjectURL(url);
                 }
@@ -316,7 +365,13 @@
                 accelerometerTimestamp.value = boseARDeviceElement.getAttribute("accelerometerTimestamp");
 
                 if (isRecording) {
-                    accelerometerCsv += `${accelerometerTimestamp.value},${accelerometerX.value},${accelerometerY.value},${accelerometerZ.value}\n`;
+                    const absoluteTimestamp = calculateAbsoluteTimestamp(
+                        parseInt(accelerometerTimestamp.value), 
+                        accelerometerLastTimestamp, 
+                        accelerometerWrapCount,
+                        accelerometerFirstTimestamp
+                    );
+                    accelerometerCsv += `${absoluteTimestamp},${accelerometerX.value},${accelerometerY.value},${accelerometerZ.value}\n`;
                 }
             });
             boseARDeviceElement.addEventListener("gyroscope", event => {
@@ -327,7 +382,13 @@
                 gyroscopeTimestamp.value = boseARDeviceElement.getAttribute("gyroscopeTimestamp");
 
                 if (isRecording) {
-                    gyroscopeCsv += `${gyroscopeTimestamp.value},${gyroscopeX.value},${gyroscopeY.value},${gyroscopeZ.value}\n`;
+                    const absoluteTimestamp = calculateAbsoluteTimestamp(
+                        parseInt(gyroscopeTimestamp.value), 
+                        gyroscopeLastTimestamp, 
+                        gyroscopeWrapCount,
+                        gyroscopeFirstTimestamp
+                    );
+                    gyroscopeCsv += `${absoluteTimestamp},${gyroscopeX.value},${gyroscopeY.value},${gyroscopeZ.value}\n`;
                 }
             });
             boseARDeviceElement.addEventListener("rotation", event => {
@@ -344,7 +405,13 @@
                 rotationTimestamp.value = boseARDeviceElement.getAttribute("rotationTimestamp");
 
                 if (isRecording) {
-                    rotationCsv += `${rotationTimestamp.value},${rotationX.value},${rotationY.value},${rotationZ.value},${rotationW.value},${rotationPitch.value},${rotationRoll.value},${rotationYaw.value}\n`;
+                    const absoluteTimestamp = calculateAbsoluteTimestamp(
+                        parseInt(rotationTimestamp.value), 
+                        rotationLastTimestamp, 
+                        rotationWrapCount,
+                        rotationFirstTimestamp
+                    );
+                    rotationCsv += `${absoluteTimestamp},${rotationX.value},${rotationY.value},${rotationZ.value},${rotationW.value},${rotationPitch.value},${rotationRoll.value},${rotationYaw.value}\n`;
                 }
             });
             boseARDeviceElement.addEventListener("gameRotation", event => {
@@ -361,7 +428,13 @@
                 gameRotationTimestamp.value = boseARDeviceElement.getAttribute("gameRotationTimestamp");
 
                 if (isRecording) {
-                    gameRotationCsv += `${gameRotationTimestamp.value},${gameRotationX.value},${gameRotationY.value},${gameRotationZ.value},${gameRotationW.value},${gameRotationPitch.value},${gameRotationRoll.value},${gameRotationYaw.value}\n`;
+                    const absoluteTimestamp = calculateAbsoluteTimestamp(
+                        parseInt(gameRotationTimestamp.value), 
+                        gameRotationLastTimestamp, 
+                        gameRotationWrapCount,
+                        gameRotationFirstTimestamp
+                    );
+                    gameRotationCsv += `${absoluteTimestamp},${gameRotationX.value},${gameRotationY.value},${gameRotationZ.value},${gameRotationW.value},${gameRotationPitch.value},${gameRotationRoll.value},${gameRotationYaw.value}\n`;
                 }
             });
 
