@@ -236,11 +236,76 @@
             </form>
         </div>
 
+        <div id="recordingControls" style="display: none;">
+            <hr>
+            <h2>Recording</h2>
+            <button id="startRecording">Start Recording</button>
+            <button id="stopRecording">Stop Recording</button>
+            <br><br>
+            <button id="downloadAccelerometer">Download Accelerometer CSV</button>
+            <button id="downloadGyroscope">Download Gyroscope CSV</button>
+            <button id="downloadRotation">Download Rotation CSV</button>
+            <button id="downloadGameRotation">Download Game Rotation CSV</button>
+        </div>
+
         <script>
             const boseARDeviceElement = document.querySelector("bose-ar-device");
 
+            let isRecording = false;
+            let recordingStartTime = '';
+            let accelerometerCsv = '';
+            let gyroscopeCsv = '';
+            let rotationCsv = '';
+            let gameRotationCsv = '';
+
             boseARDeviceElement.addEventListener("connect", event => {
                 dataContainer.style.display = '';
+                recordingControls.style.display = '';
+            });
+
+            document.getElementById('startRecording').addEventListener('click', () => {
+                if (!isRecording) {
+                    isRecording = true;
+                    recordingStartTime = new Date().toISOString().replace(/[:.]/g, '-');
+                    accelerometerCsv = 'timestamp,x,y,z\n';
+                    gyroscopeCsv = 'timestamp,x,y,z\n';
+                    rotationCsv = 'timestamp,x,y,z,w,pitch,roll,yaw\n';
+                    gameRotationCsv = 'timestamp,x,y,z,w,pitch,roll,yaw\n';
+                }
+            });
+
+            document.getElementById('stopRecording').addEventListener('click', () => {
+                if (isRecording) {
+                    isRecording = false;
+                }
+            });
+
+            function downloadCsv(csvData, sensorType) {
+                if (csvData) {
+                    const blob = new Blob([csvData], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${recordingStartTime}_${sensorType}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
+            }
+
+            document.getElementById('downloadAccelerometer').addEventListener('click', () => {
+                downloadCsv(accelerometerCsv, 'accelerometer');
+            });
+
+            document.getElementById('downloadGyroscope').addEventListener('click', () => {
+                downloadCsv(gyroscopeCsv, 'gyroscope');
+            });
+
+            document.getElementById('downloadRotation').addEventListener('click', () => {
+                downloadCsv(rotationCsv, 'rotation');
+            });
+
+            document.getElementById('downloadGameRotation').addEventListener('click', () => {
+                downloadCsv(gameRotationCsv, 'gameRotation');
             });
 
             boseARDeviceElement.addEventListener("accelerometer", event => {
@@ -249,6 +314,10 @@
                 accelerometerZ.value = Number(boseARDeviceElement.getAttribute("accelerometerZ")).toFixed(3);
 
                 accelerometerTimestamp.value = boseARDeviceElement.getAttribute("accelerometerTimestamp");
+
+                if (isRecording) {
+                    accelerometerCsv += `${accelerometerTimestamp.value},${accelerometerX.value},${accelerometerY.value},${accelerometerZ.value}\n`;
+                }
             });
             boseARDeviceElement.addEventListener("gyroscope", event => {
                 gyroscopeX.value = Number(boseARDeviceElement.getAttribute("gyroscopeX")).toFixed(3);
@@ -256,6 +325,10 @@
                 gyroscopeZ.value = Number(boseARDeviceElement.getAttribute("gyroscopeZ")).toFixed(3);
 
                 gyroscopeTimestamp.value = boseARDeviceElement.getAttribute("gyroscopeTimestamp");
+
+                if (isRecording) {
+                    gyroscopeCsv += `${gyroscopeTimestamp.value},${gyroscopeX.value},${gyroscopeY.value},${gyroscopeZ.value}\n`;
+                }
             });
             boseARDeviceElement.addEventListener("rotation", event => {
                 rotationX.value = Number(boseARDeviceElement.getAttribute("rotationX")).toFixed(3);
@@ -269,6 +342,10 @@
                 rotationYaw.value = Number(boseARDeviceElement.getAttribute("rotationYaw")).toFixed(3);
 
                 rotationTimestamp.value = boseARDeviceElement.getAttribute("rotationTimestamp");
+
+                if (isRecording) {
+                    rotationCsv += `${rotationTimestamp.value},${rotationX.value},${rotationY.value},${rotationZ.value},${rotationW.value},${rotationPitch.value},${rotationRoll.value},${rotationYaw.value}\n`;
+                }
             });
             boseARDeviceElement.addEventListener("gameRotation", event => {
                 gameRotationX.value = Number(boseARDeviceElement.getAttribute("gameRotationX")).toFixed(3);
@@ -282,6 +359,10 @@
                 gameRotationYaw.value = Number(boseARDeviceElement.getAttribute("gameRotationYaw")).toFixed(3);
 
                 gameRotationTimestamp.value = boseARDeviceElement.getAttribute("gameRotationTimestamp");
+
+                if (isRecording) {
+                    gameRotationCsv += `${gameRotationTimestamp.value},${gameRotationX.value},${gameRotationY.value},${gameRotationZ.value},${gameRotationW.value},${gameRotationPitch.value},${gameRotationRoll.value},${gameRotationYaw.value}\n`;
+                }
             });
 
             boseARDeviceElement.addEventListener("singleTap", event => {
