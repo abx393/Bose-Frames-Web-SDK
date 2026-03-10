@@ -318,6 +318,7 @@
 
                 // Detect wrap (timestamp decreased, indicating overflow from 65535 to 0)
                 if (relativeTimestamp < lastTimestampRef) {
+                    console.log('Timestamp wrap detected. Last: ' + lastTimestampRef + ', Current: ' + relativeTimestamp);
                     wrapCountRef++;
                 }
                 lastTimestampRef = relativeTimestamp;
@@ -325,7 +326,9 @@
                 // Calculate absolute timestamp in milliseconds since Unix epoch
                 // Formula: startTime + (relativeTime - firstRelativeTime) + (wraps * 65536)
                 const offsetTime = relativeTimestamp - firstTimestampRef + (wrapCountRef * 65536);
+                console.log('Relative Timestamp: ' + relativeTimestamp + ', First Timestamp: ' + firstTimestampRef + ', Wrap Count: ' + wrapCountRef + ', Offset Time: ' + offsetTime);
                 const absoluteMs = recordingStartTime + offsetTime;
+                console.log('absoluteMs: ' + absoluteMs);
                 return absoluteMs;
             }
 
