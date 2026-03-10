@@ -310,27 +310,24 @@
                 }
             });
 
-            function calculateAbsoluteTimestamp(relativeTimestamp, lastTimestampRef, wrapCountRef, firstTimestampRef) {
+            function calculateAbsoluteTimestamp(relativeTimestamp, lastTimestampRef, wrapCountRef, firstTimestamp) {
                 // Set first timestamp on first reading
-                if (firstTimestampRef === null) {
-                    console.log('firstTimestampRef set to: ' + relativeTimestamp);
-                    firstTimestampRef = relativeTimestamp;
+                let updatedFirstTimestamp = firstTimestamp;
+                if (firstTimestamp === null) {
+                    updatedFirstTimestamp = relativeTimestamp;
                 }
 
                 // Detect wrap (timestamp decreased, indicating overflow from 65535 to 0)
                 if (relativeTimestamp < lastTimestampRef) {
-                    console.log('Timestamp wrap detected. Last: ' + lastTimestampRef + ', Current: ' + relativeTimestamp);
                     wrapCountRef++;
                 }
                 lastTimestampRef = relativeTimestamp;
 
                 // Calculate absolute timestamp in milliseconds since Unix epoch
                 // Formula: startTime + (relativeTime - firstRelativeTime) + (wraps * 65536)
-                const offsetTime = relativeTimestamp - firstTimestampRef + (wrapCountRef * 65536);
-                console.log('Relative Timestamp: ' + relativeTimestamp + ', First Timestamp: ' + firstTimestampRef + ', Wrap Count: ' + wrapCountRef + ', Offset Time: ' + offsetTime);
+                const offsetTime = relativeTimestamp - updatedFirstTimestamp + (wrapCountRef * 65536);
                 const absoluteMs = recordingStartTime + offsetTime;
-                console.log('absoluteMs: ' + absoluteMs);
-                return absoluteMs;
+                return { absoluteMs, updatedFirstTimestamp };
             }
 
             function downloadCsv(csvData, sensorType) {
@@ -369,13 +366,14 @@
                 accelerometerTimestamp.value = boseARDeviceElement.getAttribute("accelerometerTimestamp");
 
                 if (isRecording) {
-                    const absoluteTimestamp = calculateAbsoluteTimestamp(
+                    const result = calculateAbsoluteTimestamp(
                         parseInt(accelerometerTimestamp.value), 
                         accelerometerLastTimestamp, 
                         accelerometerWrapCount,
                         accelerometerFirstTimestamp
                     );
-                    accelerometerCsv += `${absoluteTimestamp},${accelerometerX.value},${accelerometerY.value},${accelerometerZ.value}\n`;
+                    accelerometerFirstTimestamp = result.updatedFirstTimestamp;
+                    accelerometerCsv += `${result.absoluteMs},${accelerometerX.value},${accelerometerY.value},${accelerometerZ.value}\n`;
                 }
             });
             boseARDeviceElement.addEventListener("gyroscope", event => {
@@ -386,13 +384,14 @@
                 gyroscopeTimestamp.value = boseARDeviceElement.getAttribute("gyroscopeTimestamp");
 
                 if (isRecording) {
-                    const absoluteTimestamp = calculateAbsoluteTimestamp(
+                    const result = calculateAbsoluteTimestamp(
                         parseInt(gyroscopeTimestamp.value), 
                         gyroscopeLastTimestamp, 
                         gyroscopeWrapCount,
                         gyroscopeFirstTimestamp
                     );
-                    gyroscopeCsv += `${absoluteTimestamp},${gyroscopeX.value},${gyroscopeY.value},${gyroscopeZ.value}\n`;
+                    gyroscopeFirstTimestamp = result.updatedFirstTimestamp;
+                    gyroscopeCsv += `${result.absoluteMs},${gyroscopeX.value},${gyroscopeY.value},${gyroscopeZ.value}\n`;
                 }
             });
             boseARDeviceElement.addEventListener("rotation", event => {
@@ -409,13 +408,14 @@
                 rotationTimestamp.value = boseARDeviceElement.getAttribute("rotationTimestamp");
 
                 if (isRecording) {
-                    const absoluteTimestamp = calculateAbsoluteTimestamp(
+                    const result = calculateAbsoluteTimestamp(
                         parseInt(rotationTimestamp.value), 
                         rotationLastTimestamp, 
                         rotationWrapCount,
                         rotationFirstTimestamp
                     );
-                    rotationCsv += `${absoluteTimestamp},${rotationX.value},${rotationY.value},${rotationZ.value},${rotationW.value},${rotationPitch.value},${rotationRoll.value},${rotationYaw.value}\n`;
+                    rotationFirstTimestamp = result.updatedFirstTimestamp;
+                    rotationCsv += `${result.absoluteMs},${rotationX.value},${rotationY.value},${rotationZ.value},${rotationW.value},${rotationPitch.value},${rotationRoll.value},${rotationYaw.value}\n`;
                 }
             });
             boseARDeviceElement.addEventListener("gameRotation", event => {
@@ -432,13 +432,14 @@
                 gameRotationTimestamp.value = boseARDeviceElement.getAttribute("gameRotationTimestamp");
 
                 if (isRecording) {
-                    const absoluteTimestamp = calculateAbsoluteTimestamp(
+                    const result = calculateAbsoluteTimestamp(
                         parseInt(gameRotationTimestamp.value), 
                         gameRotationLastTimestamp, 
                         gameRotationWrapCount,
                         gameRotationFirstTimestamp
                     );
-                    gameRotationCsv += `${absoluteTimestamp},${gameRotationX.value},${gameRotationY.value},${gameRotationZ.value},${gameRotationW.value},${gameRotationPitch.value},${gameRotationRoll.value},${gameRotationYaw.value}\n`;
+                    gameRotationFirstTimestamp = result.updatedFirstTimestamp;
+                    gameRotationCsv += `${result.absoluteMs},${gameRotationX.value},${gameRotationY.value},${gameRotationZ.value},${gameRotationW.value},${gameRotationPitch.value},${gameRotationRoll.value},${gameRotationYaw.value}\n`;
                 }
             });
 
