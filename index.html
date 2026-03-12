@@ -242,6 +242,8 @@
             <button id="startRecording">Start Recording</button>
             <button id="stopRecording">Stop Recording</button>
             <br><br>
+            <div id="recordingStatus" style="color: red; font-weight: bold;"></div>
+            <br>
             <label for="exerciseInput">Exercise:</label>
             <input id="exerciseInput" type="text" placeholder="Enter exercise name">
             <br><br>
@@ -304,6 +306,9 @@
                     gameRotationLastTimestamp = 0;
                     gameRotationWrapCount = 0;
                     gameRotationFirstTimestamp = null;
+
+                    // Update visual indicator
+                    document.getElementById('recordingStatus').textContent = '● RECORDING';
                 }
             });
 
