@@ -242,6 +242,9 @@
             <button id="startRecording">Start Recording</button>
             <button id="stopRecording">Stop Recording</button>
             <br><br>
+            <label for="exerciseInput">Exercise:</label>
+            <input id="exerciseInput" type="text" placeholder="Enter exercise name">
+            <br><br>
             <button id="downloadAccelerometer">Download Accelerometer CSV</button>
             <button id="downloadGyroscope">Download Gyroscope CSV</button>
             <button id="downloadRotation">Download Rotation CSV</button>
@@ -336,7 +339,8 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `$bose_headphones_${sensorType}_${recordingStartTimeString}.csv`;
+                    const exercise = document.getElementById('exerciseInput').value.replace(/\s+/g, '');
+                    a.download = `bose_headphones_${exercise}_${sensorType}_${recordingStartTimeString}.csv`;
                     a.click();
                     URL.revokeObjectURL(url);
                 }
