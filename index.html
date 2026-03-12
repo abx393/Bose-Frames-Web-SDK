@@ -315,6 +315,8 @@
             document.getElementById('stopRecording').addEventListener('click', () => {
                 if (isRecording) {
                     isRecording = false;
+                    // Clear visual indicator
+                    document.getElementById('recordingStatus').textContent = '';
                 }
             });
 
