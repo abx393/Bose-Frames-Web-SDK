@@ -336,7 +336,7 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `${recordingStartTimeString}_${sensorType}.csv`;
+                    a.download = `$bose_headphones_${sensorType}_${recordingStartTimeString}.csv`;
                     a.click();
                     URL.revokeObjectURL(url);
                 }
