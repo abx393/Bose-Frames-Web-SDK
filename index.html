@@ -320,7 +320,7 @@
                 }
             });
 
-            function calculateAbsoluteTimestamp(relativeTimestamp, lastTimestampRef, wrapCountRef, firstTimestamp) {
+            function calculateAbsoluteTimestamp(relativeTimestamp, lastTimestamp, wrapCount, firstTimestamp) {
                 // Set first timestamp on first reading
                 let updatedFirstTimestamp = firstTimestamp;
                 if (firstTimestamp === null) {
@@ -328,16 +328,16 @@
                 }
 
                 // Detect wrap (timestamp decreased, indicating overflow from 65535 to 0)
-                if (relativeTimestamp < lastTimestampRef) {
-                    wrapCountRef++;
+                if (relativeTimestamp < lastTimestamp) {
+                    wrapCount++;
                 }
-                lastTimestampRef = relativeTimestamp;
+                lastTimestamp = relativeTimestamp;
 
                 // Calculate absolute timestamp in milliseconds since Unix epoch
                 // Formula: startTime + (relativeTime - firstRelativeTime) + (wraps * 65536)
-                const offsetTime = relativeTimestamp - updatedFirstTimestamp + (wrapCountRef * 65536);
+                const offsetTime = relativeTimestamp - updatedFirstTimestamp + (wrapCount * 65536);
                 const absoluteMs = recordingStartTime + offsetTime;
-                return { absoluteMs, updatedFirstTimestamp };
+                return { absoluteMs, updatedFirstTimestamp, lastTimestamp, wrapCount };
             }
 
             function downloadCsv(csvData, sensorType) {
