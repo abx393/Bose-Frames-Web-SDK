@@ -384,6 +384,8 @@
                         accelerometerFirstTimestamp
                     );
                     accelerometerFirstTimestamp = result.updatedFirstTimestamp;
+                    accelerometerLastTimestamp = result.lastTimestamp;
+                    accelerometerWrapCount = result.wrapCount;
                     accelerometerCsv += `${result.absoluteMs},${accelerometerX.value},${accelerometerY.value},${accelerometerZ.value}\n`;
                 }
             });
@@ -402,6 +404,8 @@
                         gyroscopeFirstTimestamp
                     );
                     gyroscopeFirstTimestamp = result.updatedFirstTimestamp;
+                    gyroscopeLastTimestamp = result.lastTimestamp;
+                    gyroscopeWrapCount = result.wrapCount;
                     gyroscopeCsv += `${result.absoluteMs},${gyroscopeX.value},${gyroscopeY.value},${gyroscopeZ.value}\n`;
                 }
             });
