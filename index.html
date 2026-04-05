@@ -288,10 +288,10 @@
                     isRecording = true;
                     recordingStartTime = Date.now(); // Unix timestamp in milliseconds
                     recordingStartTimeString = new Date(recordingStartTime).toISOString().replace(/[:.]/g, '-');
-                    accelerometerCsv = 'timestamp,x,y,z\n';
-                    gyroscopeCsv = 'timestamp,x,y,z\n';
-                    rotationCsv = 'timestamp,x,y,z,w,pitch,roll,yaw\n';
-                    gameRotationCsv = 'timestamp,x,y,z,w,pitch,roll,yaw\n';
+                    accelerometerCsv = 'absolute_timestamp,accel_x,accel_y,accel_z\n';
+                    gyroscopeCsv = 'absolute_timestamp,gyro_x,gyro_y,gyro_z\n';
+                    rotationCsv = 'absolute_timestamp,rot_x,rot_y,rot_z,rot_w,pitch,roll,yaw\n';
+                    gameRotationCsv = 'absolute_timestamp,game_rot_x,game_rot_y,game_rot_z,game_rot_w,pitch,roll,yaw\n';
 
                     // Initialize wrap tracking
                     accelerometerLastTimestamp = 0;
